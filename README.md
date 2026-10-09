@@ -265,10 +265,6 @@ Battle_Chess/
 │   ├── archer.py        #   弓箭手
 │   ├── crossbow.py      #   弩手
 │   └── bandit.py        #   雜兵
-├── test_balance.py      # 數值驗證
-├── test_bugfixes.py     # 回歸測試（bug 修復）
-├── test_split_merge.py  # 分裂／合併測試
-├── test_terrain.py      # 地形與地圖測試
 ├── simulate_balance.py  # 兵種對戰模擬器
 ├── LICENSE.txt          # MIT 授權
 ├── .gitignore           # 版控忽略清單
