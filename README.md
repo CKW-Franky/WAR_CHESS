@@ -22,7 +22,6 @@
 - [更新內容](#更新內容)
 - [專案結構](#專案結構)
 - [存檔位置](#存檔位置)
-- [測試](#測試)
 - [已知問題與開發藍圖](#已知問題與開發藍圖)
 - [授權](#授權)
 
@@ -285,20 +284,6 @@ save_data/
 ```
 
 備份或轉移進度時，複製整個 `save_data/` 即可。
-
----
-
-## 測試
-
-所有測試皆為 **headless**（以 `SDL_VIDEODRIVER=dummy` 執行），不需要開視窗：
-
-```bash
-python test_balance.py       # 戰鬥數值與機制
-python test_bugfixes.py      # bug 修復回歸測試
-python test_split_merge.py   # 分裂／合併與小隊
-python test_terrain.py       # 地形效果與地圖生成
-python simulate_balance.py   # 兵種兩兩對戰模擬（輸出勝率矩陣）
-```
 
 ---
 
