@@ -264,7 +264,6 @@ Battle_Chess/
 │   ├── archer.py        #   弓箭手
 │   ├── crossbow.py      #   弩手
 │   └── bandit.py        #   雜兵
-├── simulate_balance.py  # 兵種對戰模擬器
 ├── LICENSE.txt          # MIT 授權
 ├── .gitignore           # 版控忽略清單
 └── save_data/           # 存檔（執行後產生）
