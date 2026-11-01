@@ -1,6 +1,8 @@
-from combat import (calculate_combat_result, check_line_of_sight,
-                    DIR_UP, DIR_RIGHT, DIR_DOWN, DIR_LEFT, get_zoc_tiles)
-from config import GRID_WIDTH, GRID_HEIGHT
+import equipment
+from config import (DIR_UP, DIR_RIGHT, DIR_DOWN, DIR_LEFT,
+                    GRID_WIDTH, GRID_HEIGHT)
+from battle.combat import calculate_combat_result
+from battle.movement import get_zoc_tiles
 
 
 class AIController:
@@ -9,8 +11,6 @@ class AIController:
     def generate_ai_actions(game, unit):
         actions = []
         if not unit or not unit.is_alive():
-            return actions
-        if unit.is_routing:
             return actions
 
         split_action = AIController._plan_split(game, unit)
@@ -21,6 +21,10 @@ class AIController:
                 skill_action = AIController._plan_skill(game, unit)
                 if skill_action:
                     actions.append(skill_action)
+
+        if not getattr(unit, "can_fire", True):
+            if unit.ap >= equipment.RELOAD_AP:
+                actions.append({"type": "RELOAD"})
 
         player_units = [u for u in game.units if u.is_alive() and u.team == "player"]
         if not player_units:
@@ -74,18 +78,15 @@ class AIController:
 
     @staticmethod
     def _plan_skill(game, unit):
-        if unit.name in ("長槍兵", "弩手", "弓騎兵"):
-            return {"type": "SKILL"}
-        if unit.name == "盾兵":
-            allies = [
-                u for u in game.units
-                if u.is_alive() and u.team == "ai" and u is not unit
-                and max(abs(u.x - unit.x), abs(u.y - unit.y)) <= 1
-                and u.name in ("弩手", "弓箭手", "弓騎兵")
-            ]
-            if allies:
-                return {"type": "SKILL", "target": (allies[0].x, allies[0].y)}
-        return None
+        skill = unit.weapon_skill
+        if skill is None or not skill.is_active:
+            return None
+        targets = unit.get_skill_targets(game)
+        if targets:
+            return {"type": "SKILL", "target": next(iter(targets))}
+        if skill.id in ("guard", "break_charge"):
+            return None
+        return {"type": "SKILL"}
 
     @staticmethod
     def _plan_post_move_attack(game, unit, dest, cost, player_units):
@@ -128,7 +129,6 @@ class AIController:
             if res["kills"] >= defender.current_soldiers:
                 score += 50000
             score += (1.0 - defender.soldier_ratio) * 5000
-            score += (100 - defender.morale) * 30
             if score > best_score:
                 best_score = score
                 chosen = {"type": "PIERCE", "target": pos, "landing": landing}
@@ -143,7 +143,6 @@ class AIController:
             if res["kills"] >= defender.current_soldiers and res["hit_chance"] >= 70:
                 score += 40000
             score += (1.0 - defender.soldier_ratio) * 4000
-            score += (100 - defender.morale) * 30
             if res["angle"] == "REAR":
                 score += 3000
             elif res["angle"] == "FLANK":
@@ -162,7 +161,7 @@ class AIController:
         best_cost = 0
 
         attack_range = unit.get_actual_range(game)
-        is_ranged = attack_range > 1
+        is_ranged = unit.is_ranged_weapon
         zoc = get_zoc_tiles(game.units, unit.team, GRID_WIDTH, GRID_HEIGHT)
 
         for (mx, my), cost in move_map.items():
@@ -191,10 +190,7 @@ class AIController:
 
         if is_ranged:
             if dist <= attack_range:
-                score += 6000
-                if check_line_of_sight(mx, my, primary.x, primary.y,
-                                       game.terrain_map):
-                    score += 5000
+                score += 11000
             else:
                 score -= abs(dist - attack_range) * 1000
         else:
@@ -216,28 +212,19 @@ class AIController:
             score += 1500
 
         terrain = game.terrain_map[my][mx]
-        if terrain == "FOREST":
-            score += 2000
-        elif terrain == "MOUNTAIN" and is_ranged:
-            score += 3000
-        elif terrain == "HIGHLAND":
+        if terrain == "HIGHLAND":
             if is_ranged:
                 score += 4000
             else:
                 score += 1000
-        elif terrain == "VILLAGE":
-            score += 1500
+        elif terrain == "MOUNTAIN":
+            if is_ranged and not unit.is_cavalry:
+                score += 3000
+        elif terrain == "FOREST":
             if unit.current_soldiers < unit.max_soldiers * 0.6:
                 score += 3000
-        elif terrain == "RUINS":
-            score += 1000
-        elif terrain == "ROAD":
-            score += 300
-        elif terrain == "SWAMP":
-            if is_ranged:
-                score -= 500
             else:
-                score -= 2000
+                score += 1000
         elif terrain == "RIVER":
             score -= 4000
 
