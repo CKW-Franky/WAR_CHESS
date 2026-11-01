@@ -157,7 +157,7 @@ py -3 main.py
 
 ## 專案結構
 
-執行版需要 35 個 Python 檔：
+執行版需要 33 個 Python 檔：
 
 ```text
 Battle_Chess_v1.0/
@@ -171,12 +171,6 @@ Battle_Chess_v1.0/
 ├── config/                 # 常數、顏色、i18n
 ├── ui/                     # HUD、選單、特效、繪製
 ├── units/                  # 六兵種與 BaseUnit
-├── RUNNING.md
-└── run_game.bat
-```
-
-開發用檔案（`tests/`、`design/`、`run_tests.py`、`ttk_report.py`）不包含在執行版。
-
 ---
 
 ## 測試
